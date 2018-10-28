@@ -1,5 +1,7 @@
 package tech.societyguruapp;
 
+import android.content.Context;
+import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -15,11 +17,22 @@ public class GhostAPI {
 
     public static PostService postService = null;
 
-    public static PostService getService() {
-        if(postService == null) {
+
+    public static PostService getService(Context context) {
+        if (postService == null) {
+            OkHttpClient client = new OkHttpClient();
+            try {
+                 client = new OkHttpClient.Builder()
+                        .sslSocketFactory(new TLSSocketFactory())
+                        .build();
+            } catch (Exception e) {
+                //Log.d("Excepcion CERT", e.getLocalizedMessage());
+            }
+
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(url)
                     .addConverterFactory(GsonConverterFactory.create())
+                    .client(client)
                     .build();
             postService = retrofit.create(PostService.class);
         }
@@ -28,10 +41,10 @@ public class GhostAPI {
 
     public interface PostService {
 
-        @GET(""+key)
+        @GET("" + key)
         Call<PostList> getPostList();
 
-        @GET("{postId}"+key)
+        @GET("{postId}" + key)
         Call<Post> getPostById(@Path("postId") String id);
 
     }
